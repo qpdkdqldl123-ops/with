@@ -260,10 +260,12 @@
     }
 
     // SMS 발송 함수 (시우님 요청 양식 적용)
-function sendEventSMS() {
-    const phoneNumber = "050219135942"; 
-    alert("현재 설정된 번호: " + phoneNumber);
+// SMS 발송 함수 (수정 완료)
+    function sendEventSMS() {
+        // 1. 수신 번호 설정
+        const phoneNumber = "050219135942"; 
         
+        // 2. 메시지 내용
         const message = `위드 [WITH] 친구 취향 설문 ☕️
 
 1. 내 주변에 있는 친구 수: 
@@ -284,22 +286,22 @@ function sendEventSMS() {
 ✨ 참여 시 추첨 경품 ✨
 [아이패드/애플워치 등] 25명 추첨! 📱`;
 
-    // 3. 인코딩 최적화: 전체를 한번에 encodeURIComponent 하되, 
-    // 브라우저가 sms: 구조를 헷갈리지 않게 처리합니다.
-    const encodedMessage = encodeURIComponent(message);
+        // 3. 인코딩 및 기기별 분기 처리
+        const encodedMessage = encodeURIComponent(message);
+        const ua = navigator.userAgent.toLowerCase();
+        const isIos = /iphone|ipad|ipod/.test(ua);
+        
+        // iOS는 '&', 그 외에는 '?' 사용
+        const smsUrl = isIos 
+            ? `sms:${phoneNumber}&body=${encodedMessage}` 
+            : `sms:${phoneNumber}?body=${encodedMessage}`;
 
-    // 4. 기기별 프로토콜 분기 처리
-    const ua = navigator.userAgent.toLowerCase();
-    const isIos = /iphone|ipad|ipod/.test(ua);
-    
-    // iOS는 '&', 안드로이드 및 기타(노트북 포함)는 '?'를 사용합니다.
-    const smsUrl = isIos 
-        ? `sms:${phoneNumber}&body=${encodedMessage}` 
-        : `sms:${phoneNumber}?body=${encodedMessage}`;
+        // 4. 실행 전 번호 확인 알림창 (테스트 후 지워도 됨)
+        alert("050 번호로 연결합니다.");
 
-    // 5. 실행 (일부 차단 방지를 위해 window.open 대신 location.href 권장)
-    location.href = smsUrl;
-}
+        // 5. 문자 앱 호출
+        location.href = smsUrl;
+    }
 
     if (location.href.includes('code=')) {
         handleSuccess("카카오");
