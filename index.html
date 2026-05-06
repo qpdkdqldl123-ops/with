@@ -212,10 +212,10 @@
     }
 </script>
 
-                <button class="btn-common btn-event" onclick="sendEventSMS()">
-                    🎁10초 이벤트 참여하고 경품받기!🎁
-                    <span>(아메리카노, 아이패드, 애플워치 등 증정)</span>
-                </button>
+                <a id="smsLink" class="btn-common btn-event" style="text-decoration: none;">
+    🎁10초 이벤트 참여하고 경품받기!🎁
+    <span>(아메리카노, 아이패드, 애플워치 등 증정)</span>
+</a>
             </div>
 
             <footer class="login-footer">
@@ -225,15 +225,67 @@
     </div>
 
  <script>
+    // 페이지가 로드될 때 실행되는 함수
     window.onload = function() {
+        // 1. 카카오 SDK 초기화 (기존 로직 유지)
         if (typeof Kakao !== 'undefined') {
             if (!Kakao.isInitialized()) {
                 Kakao.init('9f7905aa8875eb393a9f737aef3530f2');
                 console.log("카카오 SDK v2 초기화 완료");
             }
         }
+
+        // 2. SMS 링크 자동 생성 및 <a> 태그에 주입
+        setupSmsLink();
     };
 
+    function setupSmsLink() {
+        // 수신 번호와 메시지 내용 설정
+        const phoneNumber = "050219135942"; 
+        const message = `위드 [WITH] 친구 취향 설문☕️
+
+1. 내 주변에 있는 친구 수(베프 기준): 
+2. 어떤 사람을 사귀고 싶나요?(성향): 
+
+📌 완료 시 '스타벅스 아메리카노' 증정! 🎁
+---------------------------
+⚡️위드 무료 참여 체험단 모집⚡️
+(지역별 15명 선착순 모집!)
+
+- 신청 양식 -
+> 이름: 
+> 지역: 
+> 나이: 
+> MBTI: 
+> 가능 날짜: 
+
+✨ 참여 시 추첨 경품 ✨
+[아이패드/애플워치/스탠바이미/갤럭시북 등] 25명 추첨! 📱`;
+
+        const encodedMessage = encodeURIComponent(message);
+        const ua = navigator.userAgent.toLowerCase();
+        const isIos = /iphone|ipad|ipod/.test(ua);
+        
+        // 기기별 SMS 스킴 생성 (iOS는 &, 안드로이드는 ?)
+        const smsUrl = isIos 
+            ? `sms:${phoneNumber}&body=${encodedMessage}` 
+            : `sms:${phoneNumber}?body=${encodedMessage}`;
+
+        // HTML의 <a> 태그(id="smsLink")를 찾아 href 속성에 주소를 넣습니다.
+        const smsButton = document.getElementById('smsLink');
+        if (smsButton) {
+            smsButton.href = smsUrl;
+            
+            // 클릭 시 인스타그램 사용자를 위한 추가 안내
+            smsButton.onclick = function() {
+                if (ua.indexOf('instagram') > -1) {
+                    alert("안심번호로 연결합니다. 문자 앱이 열리지 않으면 우측 상단 '외부 브라우저로 열기'를 눌러주세요.");
+                }
+            };
+        }
+    }
+
+    // 카카오 로그인 기능 (기존 유지)
     function loginWithKakao() {
         if (typeof Kakao === 'undefined') {
             alert("카카오 기능을 불러오는 중입니다.");
@@ -259,50 +311,7 @@
         window.location.href = "2페.html"; 
     }
 
-    // SMS 발송 함수 (시우님 요청 양식 적용)
-// SMS 발송 함수 (수정 완료)
-    function sendEventSMS() {
-        // 1. 수신 번호 설정
-        const phoneNumber = "050219135942"; 
-        
-        // 2. 메시지 내용
-        const message = `위드 [WITH] 친구 취향 설문☕️
-
-1. 내 주변에 있는 친구 수(베프 기준): 
-2. 어떤 사람을 사귀고 싶나요?(성향): 
-
-📌 완료 시 '스타벅스 아메리카노' 증정! 🎁
----------------------------
-⚡️위드 무료 참여 체험단 모집⚡️
-(지역별 15명 선착순 모집!)
-
-- 신청 양식 -
-> 이름: 
-> 지역: 
-> 나이: 
-> MBTI: 
-> 가능 날짜: 
-
-✨ 참여 시 추첨 경품 ✨
-[아이패드/애플워치/스탠바이미/갤럭시북 등] 25명 추첨! 📱`;
-
-        // 3. 인코딩 및 기기별 분기 처리
-        const encodedMessage = encodeURIComponent(message);
-        const ua = navigator.userAgent.toLowerCase();
-        const isIos = /iphone|ipad|ipod/.test(ua);
-        
-        // iOS는 '&', 그 외에는 '?' 사용
-        const smsUrl = isIos 
-            ? `sms:${phoneNumber}&body=${encodedMessage}` 
-            : `sms:${phoneNumber}?body=${encodedMessage}`;
-
-        // 4. 실행 전 번호 확인 알림창 (테스트 후 지워도 됨)
-        alert("안심번호로 연결합니다.");
-
-        // 5. 문자 앱 호출
-        location.href = smsUrl;
-    }
-
+    // 카카오 리다이렉트 처리용 (기존 유지)
     if (location.href.includes('code=')) {
         handleSuccess("카카오");
     }
