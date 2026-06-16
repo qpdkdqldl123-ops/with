@@ -199,23 +199,14 @@
                     <div class="g_id_signin" data-type="standard" data-size="large" data-width="320" data-theme="outline"></div>
                 </div>
 
-              <button class="btn-common btn-guest" onclick="enterAsGuest()">
-    게스트로 구경하기
-</button>
-
-<script>
-    // 게스트 전용 입장 함수 추가
-    function enterAsGuest() {
-        // 2페.html이 검사하는 'isLoggedIn' 항목을 강제로 true로 설정
-        sessionStorage.setItem("isLoggedIn", "true"); 
-        location.href = '2페.html';
-    }
-</script>
+                <button class="btn-common btn-guest" onclick="enterAsGuest()">
+                    게스트로 구경하기
+                </button>
 
                 <a id="smsLink" class="btn-common btn-event" style="text-decoration: none;">
-    🎁추천인 입력하고 100% 경품받기!🎁
-    <span>(아메리카노, 아이패드, 애플워치 등 증정)</span>
-</a>
+                    🎁추천인 입력하고 100% 경품받기!🎁
+                    <span>(아메리카노, 아이패드, 애플워치 등 증정)</span>
+                </a>
             </div>
 
             <footer class="login-footer">
@@ -224,27 +215,55 @@
         </div>
     </div>
 
- <script>
-    // 페이지가 로드될 때 실행되는 함수
+<script>
+    // 게스트 전용 입장 함수
+    function enterAsGuest() {
+        sessionStorage.setItem("isLoggedIn", "true"); 
+        location.href = '2페.html';
+    }
+
+    // 페이지가 로드될 때 실행되는 함수[cite: 1]
     window.onload = function() {
-        // 1. 카카오 SDK 초기화 (기존 로직 유지)
-        if (typeof Kakao !== 'undefined') {
-            if (!Kakao.isInitialized()) {
-                Kakao.init('9f7905aa8875eb393a9f737aef3530f2');
-                console.log("카카오 SDK v2 초기화 완료");
+        // 0. 에브리타임 및 인앱 브라우저 체크 및 강제 탈출[cite: 1]
+        checkInAppBrowser();
+
+        // 1. 카카오 SDK 초기화 (기존 로직 유지)[cite: 1]
+        if (typeof Kakao !== 'undefined') { //[cite: 1]
+            if (!Kakao.isInitialized()) { //[cite: 1]
+                Kakao.init('9f7905aa8875eb393a9f737aef3530f2'); //[cite: 1]
+                console.log("카카오 SDK v2 초기화 완료"); //[cite: 1]
             }
         }
 
-        // 2. SMS 링크 자동 생성 및 <a> 태그에 주입
-        setupSmsLink();
+        // 2. SMS 링크 자동 생성 및 <a> 태그에 주입[cite: 1]
+        setupSmsLink(); //[cite: 1]
     };
 
-    function setupSmsLink() {
-        // 수신 번호와 메시지 내용 설정
-        const phoneNumber = "050219135942"; 
-        const message = 
-            (택1 하지만, 둘다 하면 좋아요!) 
-            `위드 [WITH] 친구 취향 설문☕️
+    // 에브리타임 및 인앱 브라우저 강제 탈출 함수
+    function checkInAppBrowser() {
+        const ua = navigator.userAgent.toLowerCase(); //[cite: 1]
+        const href = window.location.href;
+
+        // 에브리타임 앱 자체 식별자나 기타 인앱 브라우저 체크
+        const isEverytime = ua.indexOf('everytime') > -1;
+        const isInstagram = ua.indexOf('instagram') > -1;
+
+        if (isEverytime || isInstagram) {
+            // 안드로이드 환경일 경우 크롬으로 강제 실행법 (Intent 스킴 활용)
+            if (ua.indexOf('android') > -1) {
+                window.location.href = 'intent://' + href.replace(/^https?:\/\//, '') + '#Intent;scheme=https;package=com.android.chrome;end';
+            } 
+            // iOS(아이폰) 환경일 경우 사파리 구동을 유도하는 경고창 출력 (보안상 자동 실행 불가)
+            else if (/iphone|ipad|ipod/.test(ua)) { //[cite: 1]
+                alert("에브리타임 앱 내부에서는 보안 정책상 구글/카카오 로그인이 차단됩니다.\n\n화면 우측 하단의 설정(...) 버튼을 누른 뒤 '외부 브라우저(Safari)로 열기'를 선택하여 진행해 주세요!");
+            }
+        }
+    }
+
+    function setupSmsLink() { //[cite: 1]
+        // 수신 번호와 메시지 내용 설정[cite: 1]
+        const phoneNumber = "050219135942";  //[cite: 1]
+        const message = `위드 [WITH] 친구 취향 설문☕️ (택1 하지만, 둘다 하면 좋아요!)
 
 1.추천인 입력(숫자 네자리): 
 2. 어떤 사람을 사귀고 싶나요?(성향): 
@@ -262,60 +281,58 @@
 > 가능 날짜: 
 
 ✨ 참여 시 추첨 경품 ✨
-[아이패드/애플워치/스탠바이미/갤럭시북 등] 25명 추첨! 📱`;
+[아이패드/애플워치/스탠바이미/갤럭시북 등] 25명 추첨! 📱`; //[cite: 1]
 
-        const encodedMessage = encodeURIComponent(message);
-        const ua = navigator.userAgent.toLowerCase();
-        const isIos = /iphone|ipad|ipod/.test(ua);
+        const encodedMessage = encodeURIComponent(message); //[cite: 1]
+        const ua = navigator.userAgent.toLowerCase(); //[cite: 1]
+        const isIos = /iphone|ipad|ipod/.test(ua); //[cite: 1]
         
-        // 기기별 SMS 스킴 생성 (iOS는 &, 안드로이드는 ?)
-        const smsUrl = isIos 
-            ? `sms:${phoneNumber}&body=${encodedMessage}` 
-            : `sms:${phoneNumber}?body=${encodedMessage}`;
+        // 기기별 SMS 스킴 생성[cite: 1]
+        const smsUrl = isIos  //[cite: 1]
+            ? `sms:${phoneNumber}&body=${encodedMessage}`  //[cite: 1]
+            : `sms:${phoneNumber}?body=${encodedMessage}`; //[cite: 1]
 
-        // HTML의 <a> 태그(id="smsLink")를 찾아 href 속성에 주소를 넣습니다.
-        const smsButton = document.getElementById('smsLink');
-        if (smsButton) {
-            smsButton.href = smsUrl;
+        const smsButton = document.getElementById('smsLink'); //[cite: 1]
+        if (smsButton) { //[cite: 1]
+            smsButton.href = smsUrl; //[cite: 1]
             
-            // 클릭 시 인스타그램 사용자를 위한 추가 안내
-            smsButton.onclick = function() {
-                if (ua.indexOf('instagram') > -1) {
-                    alert("안심번호로 연결합니다. 문자 앱이 열리지 않으면 우측 상단 '외부 브라우저로 열기'를 눌러주세요.");
+            smsButton.onclick = function() { //[cite: 1]
+                if (ua.indexOf('instagram') > -1 || ua.indexOf('everytime') > -1) { //[cite: 1]
+                    alert("안심번호로 연결합니다. 문자 앱이 열리지 않으면 우측 상단 혹은 하단의 메뉴를 눌러 '외부 브라우저로 열기'를 해주세요.");
                 }
             };
         }
     }
 
-    // 카카오 로그인 기능 (기존 유지)
-    function loginWithKakao() {
-        if (typeof Kakao === 'undefined') {
-            alert("카카오 기능을 불러오는 중입니다.");
-            return;
+    // 카카오 로그인 기능 (기존 유지)[cite: 1]
+    function loginWithKakao() { //[cite: 1]
+        if (typeof Kakao === 'undefined') { //[cite: 1]
+            alert("카카오 기능을 불러오는 중입니다."); //[cite: 1]
+            return; //[cite: 1]
         }
-        try {
-            Kakao.Auth.authorize({
-                redirectUri: 'https://qpdkdqldl123-ops.github.io/with/index.html'
+        try { //[cite: 1]
+            Kakao.Auth.authorize({ //[cite: 1]
+                redirectUri: 'https://qpdkdqldl123-ops.github.io/with/index.html' //[cite: 1]
             });
-        } catch (e) {
-            console.error("실행 에러:", e);
-            alert("로그인 실행 중 오류가 발생했습니다.");
+        } catch (e) { //[cite: 1]
+            console.error("실행 에러:", e); //[cite: 1]
+            alert("로그인 실행 중 오류가 발생했습니다."); //[cite: 1]
         }
     }
 
-    function handleGoogleLogin(response) {
-        handleSuccess("구글");
+    function handleGoogleLogin(response) { //[cite: 1]
+        handleSuccess("구글"); //[cite: 1]
     }
 
-    function handleSuccess(platform) {
-        alert(platform + " 계정 인증 완료!");
-        sessionStorage.setItem("isLoggedIn", "true");
-        window.location.href = "2페.html"; 
+    function handleSuccess(platform) { //[cite: 1]
+        alert(platform + " 계정 인증 완료!"); //[cite: 1]
+        sessionStorage.setItem("isLoggedIn", "true"); //[cite: 1]
+        window.location.href = "2페.html";  //[cite: 1]
     }
 
-    // 카카오 리다이렉트 처리용 (기존 유지)
-    if (location.href.includes('code=')) {
-        handleSuccess("카카오");
+    // 카카오 리다이렉트 처리용 (기존 유지)[cite: 1]
+    if (location.href.includes('code=')) { //[cite: 1]
+        handleSuccess("카카오"); //[cite: 1]
     }
 </script>
 </body>
